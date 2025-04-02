@@ -17,18 +17,23 @@ fn main() {
     });
 
     let reader = BufReader::new(file);
-    for item in reader.lines() {
-        let item = item.unwrap_or_else(|_err| {
-            eprintln!();
-            process::exit(1);
-        });
-        // 匹配query
-        let output = if item.contains(&config.query) {
-            Cow::Owned(item.replace(&config.query, &config.query.red().to_string()))
-        } else {
-            Cow::Borrowed(&item)
-        };
-        println!("{}", output);
+    for line in reader.lines() {
+        match line {
+            Ok(line) => {
+                // 匹配query
+                let highlight_style = &config.query.red().to_string();
+                let output = if line.contains(&config.query) {
+                    Cow::Owned(line.replace(&config.query, highlight_style))
+                } else {
+                    Cow::Borrowed(&line)
+                };
+                println!("{}", output)
+            }
+            Err(err) => {
+                eprintln!("读取行失败: {}", err);
+                process::exit(1);
+            }
+        }
     }
 }
 
